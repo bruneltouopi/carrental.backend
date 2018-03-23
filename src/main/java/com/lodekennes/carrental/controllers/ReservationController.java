@@ -7,7 +7,10 @@ import com.lodekennes.carrental.models.Reservation;
 import com.lodekennes.carrental.repositories.CarRepository;
 import com.lodekennes.carrental.repositories.CustomerRepository;
 import com.lodekennes.carrental.repositories.ReservationRepository;
+import com.lodekennes.carrental.services.CarService;
+import com.lodekennes.carrental.services.CustomerService;
 import com.lodekennes.carrental.services.DateService;
+import com.lodekennes.carrental.services.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,27 +25,23 @@ import java.util.Optional;
 public class ReservationController {
 
     @Autowired
-    private ReservationRepository reservationRepository;
+    private ReservationService reservationService;
     @Autowired
-    private CarRepository carRepository;
+    private CarService carService;
     @Autowired
-    private CustomerRepository customerRepository;
+    private CustomerService customerService;
 
     @Autowired
     private DateService dateService;
 
     @RequestMapping
     public Iterable<Reservation> get() {
-        return reservationRepository.findAll();
+        return reservationService.findAll();
     }
 
     @RequestMapping(value = "/{id}")
     public Reservation getById(@PathVariable int id) throws NotFoundException {
-        Optional<Reservation> optionalReservation = reservationRepository.findById(id);
-
-        if(!optionalReservation.isPresent())
-            throw new NotFoundException("Reservation not found.");
-        return optionalReservation.get();
+        return reservationService.findById(id);
     }
 
     @RequestMapping(value = "/{startDateString}/{endDateString}")
@@ -50,29 +49,22 @@ public class ReservationController {
         Date startDate = dateService.parse(startDateString);
         Date endDate = dateService.parse(endDateString);
 
-        List<Reservation> reservations = reservationRepository.findByDates(startDate, endDate);
-        return reservations;
+        return reservationService.findByDates(startDate, endDate);
     }
 
     @PostMapping
     public Reservation post(@RequestBody @Valid Reservation reservation) throws NotFoundException {
-        Customer customer = reservation.getCustomer();
-        Car car = reservation.getCar();
-
-        Optional<Customer> optionalCustomer = customerRepository.findById(customer.getId());
-        reservation.setCustomer(optionalCustomer.get());
-
-        Optional<Car> optionalCar = carRepository.findById(car.getId());
-        car = optionalCar.get();
+        Car car = carService.findById(reservation.getCar().getId());
 
         long alreadyReservationsCount = car.getReservations().stream().filter(r -> dateService.isInBetween(r.getStartDate(), reservation.getStartDate(), reservation.getEndDate()) || dateService.isInBetween(r.getEndDate(), reservation.getStartDate(), reservation.getEndDate())).count();
 
         if(alreadyReservationsCount > 0)
             throw new NotFoundException("Car is not found for that period.");
 
+        reservation.setCustomer(customerService.findById(reservation.getCustomer().getId()));
         reservation.setCar(car);
 
-        Reservation savedReservation = reservationRepository.save(reservation);
+        Reservation savedReservation = reservationService.save(reservation);
         return savedReservation;
     }
 }

@@ -34,17 +34,15 @@ public class CarControllerTests {
 
     @Test
     public void getEmpty() throws Exception {
-        this.mockMvc.perform(get(PATH)).andDo(print()).andExpect(status().isOk())
-                .andExpect(content().string(equalTo("[]")));
+        //mockMvc.
     }
 
-    /*@Test
+    @Test
     public void postOne() throws Exception {
         MockHttpServletRequestBuilder p = post(PATH).content("{ 'name': 'Toyota V2','pricePerDay': 20}").contentType(MediaType.APPLICATION_JSON);
-        this.mockMvc.perform(p).andExpect(status().isOk());
+        mockMvc.perform(p).andExpect(status().isOk());
         ContentResultMatchers c = content();
         String s = c.toString();
-
-    }*/
-
+        //s.
+    }
 }

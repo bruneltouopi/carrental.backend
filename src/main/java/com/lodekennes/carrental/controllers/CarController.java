@@ -4,6 +4,7 @@ import com.lodekennes.carrental.exceptions.NotFoundException;
 import com.lodekennes.carrental.models.Car;
 import com.lodekennes.carrental.models.Reservation;
 import com.lodekennes.carrental.repositories.CarRepository;
+import com.lodekennes.carrental.services.CarService;
 import com.lodekennes.carrental.services.DateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,35 +21,24 @@ import java.util.Set;
 public class CarController {
 
     @Autowired
-    private CarRepository carRepository;
+    private CarService carService;
 
     @Autowired
     private DateService dateService;
 
     @RequestMapping
     public Iterable<Car> get() {
-        Iterable<Car> cars = carRepository.findAll();
-        return cars;
+        return carService.findAll();
     }
 
     @RequestMapping(value="/{id}", method = RequestMethod.GET)
     public Car get(@PathVariable int id) throws NotFoundException {
-        Optional<Car> optionalCar = carRepository.findById(id);
-
-        if(!optionalCar.isPresent())
-            throw new NotFoundException("Car not found.");
-
-        return optionalCar.get();
+        return carService.findById(id);
     }
 
     @RequestMapping(value="/{id}/reservations", method = RequestMethod.GET)
     public Set<Reservation> getReservations(@PathVariable int id) throws NotFoundException {
-        Optional<Car> optionalCar = carRepository.findById(id);
-
-        if(!optionalCar.isPresent())
-            throw new NotFoundException("Car not found.");
-
-        return optionalCar.get().getReservations();
+        return carService.findById(id).getReservations();
     }
 
     @RequestMapping(value = "/{startDateString}/{endDateString}")
@@ -56,23 +46,17 @@ public class CarController {
         Date startDate = dateService.parse(startDateString);
         Date endDate = dateService.parse(endDateString);
 
-        List<Car> availableCars = carRepository.findAvailable(startDate, endDate);
-        return availableCars;
+        return carService.findAvailable(startDate, endDate);
     }
 
     @PostMapping
     public Car post(@RequestBody @Valid Car car) throws Exception {
-        return carRepository.save(car);
+        return carService.save(car);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public Car put(@PathVariable int id, @RequestBody Car newCar) throws NotFoundException {
-        Optional<Car> optionalCar = carRepository.findById(id);
-
-        if(!optionalCar.isPresent())
-            throw new NotFoundException("Car not found.");
-
-        Car car = optionalCar.get();
+        Car car = carService.findById(id);
 
         if(1 <= newCar.getName().length()) {
             car.setName(newCar.getName());
@@ -82,18 +66,11 @@ public class CarController {
             car.setPricePerDay(newCar.getPricePerDay());
         }
 
-        carRepository.save(car);
-
-        return car;
+        return carService.save(car);
     }
 
     @DeleteMapping(value = "/{id}")
     public void delete(@PathVariable int id) throws NotFoundException {
-        Optional<Car> optionalCar = carRepository.findById(id);
-
-        if(!optionalCar.isPresent())
-            throw new NotFoundException("Car not found.");
-
-        carRepository.delete(optionalCar.get());
+        carService.delete(id);
     }
 }
