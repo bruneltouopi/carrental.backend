@@ -17,6 +17,10 @@ public class CustomerService {
         return customerRepository.findAll();
     }
 
+    public final long countAll() {
+        return customerRepository.count();
+    }
+
     public final Customer findById(int id) throws NotFoundException {
         Optional<Customer> optionalCustomer = customerRepository.findById(id);
 
@@ -30,8 +34,7 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    public final void delete(int id) throws NotFoundException {
-        Customer c = findById(id);
-        customerRepository.delete(c);
+    public final void delete(int id) {
+        customerRepository.deleteById(id);
     }
 }
