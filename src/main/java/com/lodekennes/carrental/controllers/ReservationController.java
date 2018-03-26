@@ -1,6 +1,7 @@
 package com.lodekennes.carrental.controllers;
 
 import com.lodekennes.carrental.exceptions.NotFoundException;
+import com.lodekennes.carrental.exposedmodels.ExposedReservation;
 import com.lodekennes.carrental.models.Car;
 import com.lodekennes.carrental.models.Customer;
 import com.lodekennes.carrental.models.Reservation;
@@ -53,18 +54,24 @@ public class ReservationController {
     }
 
     @PostMapping
-    public Reservation post(@RequestBody @Valid Reservation reservation) throws NotFoundException {
+    public Reservation post(@RequestBody @Valid ExposedReservation exposedReservation) throws NotFoundException {
+        Reservation reservation = exposedReservation.ToReservation();
         Car car = carService.findById(reservation.getCar().getId());
 
         long alreadyReservationsCount = car.getReservations().stream().filter(r -> dateService.isInBetween(r.getStartDate(), reservation.getStartDate(), reservation.getEndDate()) || dateService.isInBetween(r.getEndDate(), reservation.getStartDate(), reservation.getEndDate())).count();
 
         if(alreadyReservationsCount > 0)
-            throw new NotFoundException("Car is not found for that period.");
+            throw new NotFoundException("Car is not available for that period.");
 
         reservation.setCustomer(customerService.findById(reservation.getCustomer().getId()));
         reservation.setCar(car);
 
         Reservation savedReservation = reservationService.save(reservation);
         return savedReservation;
+    }
+
+    @DeleteMapping(value = "/{id}")
+    public void delete(@PathVariable int id) throws NotFoundException {
+        reservationService.delete(id);
     }
 }

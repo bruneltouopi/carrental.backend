@@ -85,7 +85,7 @@ public class TestHelper {
         cars.add(car4);
 
         //Sample Reservations
-        Reservation reservation1 = new Reservation(new Date(), new Date(), customer1, car1, false);
+        Reservation reservation1 = new Reservation(new Date(2018, 12, 3), new Date(2018, 12, 5), customer1, car1, false);
 
         reservationRepository.save(reservation1);
 

@@ -14,6 +14,10 @@ public class DateService {
         return simpleDateFormat.parse(d);
     }
 
+    public String formatDate(Date d) {
+        return simpleDateFormat.format(d);
+    }
+
     public boolean isInBetween(Date value, Date startDate, Date endDate) {
         return startDate.compareTo(value) * value.compareTo(endDate) >= 0;
     }

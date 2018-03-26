@@ -6,6 +6,7 @@ import org.hibernate.validator.constraints.Range;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -13,15 +14,18 @@ public class Car {
     private int id;
     @NotBlank
     private String name;
-    @Range(min = 1L)
+    @Range(min = 1)
     private double pricePerDay;
     private Set<Reservation> reservations;
 
-    public Car() {}
+    public Car() {
+        this("", 1);
+    }
 
     public Car(String name, double pricePerDay) {
         this.name = name;
         this.pricePerDay = pricePerDay;
+        this.reservations = new HashSet<>();
     }
 
     @Id
