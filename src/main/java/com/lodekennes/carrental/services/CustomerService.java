@@ -4,6 +4,7 @@ import com.lodekennes.carrental.exceptions.NotFoundException;
 import com.lodekennes.carrental.models.Customer;
 import com.lodekennes.carrental.repositories.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -34,7 +35,11 @@ public class CustomerService {
         return customerRepository.save(customer);
     }
 
-    public final void delete(int id) {
-        customerRepository.deleteById(id);
+    public final void delete(int id) throws NotFoundException {
+        try {
+            customerRepository.deleteById(id);
+        } catch(EmptyResultDataAccessException e) {
+            throw new NotFoundException("Customer not found.");
+        }
     }
 }

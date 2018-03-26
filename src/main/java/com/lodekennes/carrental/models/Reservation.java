@@ -11,6 +11,17 @@ import java.util.Date;
 
 @Entity
 public class Reservation {
+
+    public Reservation() {}
+
+    public Reservation(Date startDate, Date endDate, Customer customer, Car car, boolean isPaid) {
+        this.setStartDate(startDate);
+        this.setEndDate(endDate);
+        this.setCustomer(customer);
+        this.setCar(car);
+        this.setPaid(isPaid);
+    }
+
     private int id;
     @NotNull
     @Temporal(TemporalType.DATE)
