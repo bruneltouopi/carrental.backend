@@ -11,37 +11,34 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import javax.transaction.Transactional;
+
+import static org.hamcrest.Matchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @RunWith(SpringRunner.class)
+@Transactional
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = MainApplicationClass.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @AutoConfigureMockMvc
 public class CustomerControllerTests {
+    private TestHelper testHelper;
+
     @Before
     public void init() {
-        MockitoAnnotations.initMocks(this);
-
-        TestHelper.loadSampleData(reservationRepository, customerRepository, carRepository);
+        testHelper = TestHelper.loadSampleData(reservationRepository, customerRepository, carRepository);
     }
 
     @Autowired
@@ -69,7 +66,7 @@ public class CustomerControllerTests {
                 .andExpect(status().isOk())
         .andExpect(content()
         .contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$[0].name", is("Lode Kennes")));
+        .andExpect(jsonPath("$", hasSize(testHelper.customers.size())));
     }
 
     //endregion
@@ -78,14 +75,15 @@ public class CustomerControllerTests {
 
     @Test
     public void b_GetById() throws Exception {
-        MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/customers/1").contentType(MediaType.APPLICATION_JSON);
+        Customer expectedCustomer = testHelper.getCustomer(0);
+        MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/customers/" + expectedCustomer.getId()).contentType(MediaType.APPLICATION_JSON);
 
         mvc.perform(mockHttpServletRequestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(content()
                         .contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andDo(print())
-                .andExpect(jsonPath("$.name", is("Lode Kennes")));
+                .andExpect(jsonPath("$.name", is(expectedCustomer.getName())));
     }
 
     @Test
@@ -102,13 +100,15 @@ public class CustomerControllerTests {
 
     @Test
     public void c_GetReservationsById() throws Exception {
-        MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/customers/1/reservations").contentType(MediaType.APPLICATION_JSON);
+        Customer customer = testHelper.getCustomer(0);
+
+        MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/customers/" + customer.getId() + "/reservations").contentType(MediaType.APPLICATION_JSON);
 
         mvc.perform(mockHttpServletRequestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(content()
                         .contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$", hasSize(1)));
+                .andExpect(jsonPath("$", hasSize(customer.getReservations().size())));
     }
 
     //endregion
@@ -179,8 +179,63 @@ public class CustomerControllerTests {
     //region Put
 
     @Test
-    public void e_PutCustomer() {
+    public void e_PutCustomer() throws Exception {
+        Customer customerThatWillBeModified = testHelper.getCustomer(1);
+        Customer customerToModify = new Customer("Griet Coysmans", "griet.coysmans@accenture.com");
+        String serialized = TestHelper.jsonSerialize(customerToModify);
 
+        mvc.perform(
+          put("/api/v1/customers/" + customerThatWillBeModified.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(serialized)
+        ).andExpect(status().isOk())
+        .andExpect(jsonPath("$.name", is("Griet Coysmans")))
+        .andExpect(jsonPath("$.email", is("griet.coysmans@accenture.com")))
+        .andDo(print());
+    }
+
+    @Test
+    public void e_PutCustomer_OnlyName() throws Exception {
+        Customer customerThatWillBeModified = testHelper.getCustomer(1);
+        Customer customerToModify = new Customer("Griet Coysmans", "");
+        String serialized = TestHelper.jsonSerialize(customerToModify);
+
+        mvc.perform(
+                put("/api/v1/customers/" + customerThatWillBeModified.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(serialized)
+        ).andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is("Griet Coysmans")))
+                .andExpect(jsonPath("$.email", is(customerThatWillBeModified.getEmail())))
+                .andDo(print());
+    }
+
+    @Test
+    public void e_PutCustomer_OnlyEmail() throws Exception {
+        Customer customerThatWillBeModified = testHelper.getCustomer(2);
+        Customer customerToModify = new Customer("", "griet.coysmans@accenture.com");
+        String serialized = TestHelper.jsonSerialize(customerToModify);
+
+        mvc.perform(
+                put("/api/v1/customers/" + customerThatWillBeModified.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(serialized)
+        ).andExpect(status().isOk())
+                .andExpect(jsonPath("$.name", is(customerThatWillBeModified.getName())))
+                .andExpect(jsonPath("$.email", is("griet.coysmans@accenture.com")))
+                .andDo(print());
+    }
+
+    @Test
+    public void e_PutCustomer_Bad_InvalidId() throws Exception {
+        Customer customerToModify = new Customer("Lode Kennes", "lode.kennes@accenture.com");
+        String serialized = TestHelper.jsonSerialize(customerToModify);
+
+        mvc.perform(
+                put("/api/v1/customers/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(serialized)
+        ).andExpect(status().is(404));
     }
 
     //endregion
@@ -189,7 +244,8 @@ public class CustomerControllerTests {
 
     @Test
     public void f_DeleteCustomer() throws Exception {
-        mvc.perform(delete("/api/v1/customers/2"))
+        Customer customerThatWillBeDeleted = testHelper.getCustomer(3);
+        mvc.perform(delete("/api/v1/customers/" + customerThatWillBeDeleted.getId()))
                 .andExpect(status().isOk());
     }
 
