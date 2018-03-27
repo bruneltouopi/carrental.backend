@@ -72,7 +72,7 @@ public class CarControllerTests {
     //region Get
 
     @Test
-    public void a_Get() throws Exception {
+    public void get_Get() throws Exception {
         Car expectedCar = testHelper.getCar(0);
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/cars").contentType(MediaType.APPLICATION_JSON);
 
@@ -89,7 +89,7 @@ public class CarControllerTests {
     //region GetById
 
     @Test
-    public void b_GetById() throws Exception {
+    public void getById_GetById() throws Exception {
         Car expectedCar = testHelper.getCar(0);
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/cars/" + expectedCar.getId()).contentType(MediaType.APPLICATION_JSON);
 
@@ -102,7 +102,7 @@ public class CarControllerTests {
     }
 
     @Test
-    public void b_GetById_Bad() throws Exception {
+    public void getById_GetById_Bad() throws Exception {
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/cars/9999999" ).contentType(MediaType.APPLICATION_JSON);
 
         mvc.perform(mockHttpServletRequestBuilder)
@@ -115,7 +115,7 @@ public class CarControllerTests {
     //region GetReservationsById
 
     @Test
-    public void c_GetReservationsById() throws Exception {
+    public void reservations_GetReservationsById() throws Exception {
         Car car = testHelper.getCar(0);
 
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/cars/" + car.getId() + "/reservations").contentType(MediaType.APPLICATION_JSON);
@@ -131,7 +131,7 @@ public class CarControllerTests {
 
     //region GetAvailable
     @Test
-    public void d_GetAvailable_OneReservation() throws Exception {
+    public void available_GetAvailable_OneReservation() throws Exception {
         Reservation reservation = testHelper.getReservation(0);
         mvc.perform(get("/api/v1/cars/" + dateService.formatDate(reservation.getStartDate()) + "/" + dateService.formatDate(reservation.getEndDate())))
                 .andExpect(status().isOk())
@@ -141,7 +141,7 @@ public class CarControllerTests {
     }
 
     @Test
-    public void d_GetAvailable_All() throws Exception {
+    public void available_GetAvailable_All() throws Exception {
         Reservation reservation = testHelper.getReservation(0);
         mvc.perform(get("/api/v1/cars/1970-01-01/1970-01-01"))
                 .andExpect(status().isOk())
@@ -151,19 +151,19 @@ public class CarControllerTests {
     }
 
     @Test(expected = Exception.class)
-    public void d_GetAvailable_Bad_StartDate() throws Exception {
+    public void available_GetAvailable_Bad_StartDate() throws Exception {
         mvc.perform(get("/api/v1/cars/1970-01-x/1970-01-01"));
     }
 
     @Test(expected = Exception.class)
-    public void d_GetAvailable_Bad_EndDate() throws Exception {
+    public void available_GetAvailable_Bad_EndDate() throws Exception {
         mvc.perform(get("/api/v1/cars/1970-01-01/1970-01-x"));
     }
     //endregion
 
     //region Post
     @Test
-    public void e_AddCar() throws Exception {
+    public void post_AddCar() throws Exception {
         Car c = new Car("Hyundai i8", 99);
         String seralized = TestHelper.jsonSerialize(c);
         mvc.perform(post("/api/v1/cars")
@@ -172,13 +172,12 @@ public class CarControllerTests {
                 .andExpect(status().isOk())
         .andExpect(content()
                 .contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id", greaterThan(0)))
         .andExpect(jsonPath("$.name", is("Hyundai i8")))
         .andExpect(jsonPath("$.pricePerDay", is(99.0)));
     }
 
     @Test
-    public void e_AddCar_Bad_LowPrice() throws Exception {
+    public void post_AddCar_Bad_LowPrice() throws Exception {
         Car c = new Car("Hyundai i8", -1);
         String seralized = TestHelper.jsonSerialize(c);
         mvc.perform(post("/api/v1/cars")
@@ -188,7 +187,7 @@ public class CarControllerTests {
     }
 
     @Test
-    public void e_AddCar_Bad_NoName() throws Exception {
+    public void post_AddCar_Bad_NoName() throws Exception {
         Car c = new Car("", 1);
         String seralized = TestHelper.jsonSerialize(c);
         mvc.perform(post("/api/v1/cars")
@@ -200,7 +199,7 @@ public class CarControllerTests {
 
     //region Put
     @Test
-    public void f_Put() throws Exception {
+    public void put_Put() throws Exception {
         Car carToModify = testHelper.getCar(1);
         carToModify.setName("Hello");
         carToModify.setPricePerDay(9);
@@ -222,20 +221,20 @@ public class CarControllerTests {
     //region Delete
 
     @Test
-    public void g_DeleteCar() throws Exception {
+    public void delete_DeleteCar() throws Exception {
         Car carThatWillBeDeleted = testHelper.getCar(3);
         mvc.perform(delete("/api/v1/cars/" + carThatWillBeDeleted.getId()))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void g_DeleteCar_InvalidId() throws Exception {
+    public void delete_DeleteCar_InvalidId() throws Exception {
         mvc.perform(delete("/api/v1/cars/10000"))
                 .andExpect(status().is(404));
     }
 
     @Test
-    public void g_DeleteCar_NoId() throws Exception {
+    public void delete_DeleteCar_NoId() throws Exception {
         mvc.perform(delete("/api/v1/cars"))
                 .andExpect(status().isOk());
     }

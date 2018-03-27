@@ -59,7 +59,7 @@ public class CustomerControllerTests {
     //region Get
 
     @Test
-    public void a_Get() throws Exception {
+    public void get_Get() throws Exception {
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/customers").contentType(MediaType.APPLICATION_JSON);
 
         mvc.perform(mockHttpServletRequestBuilder)
@@ -74,7 +74,7 @@ public class CustomerControllerTests {
     //region GetById
 
     @Test
-    public void b_GetById() throws Exception {
+    public void getById_GetById() throws Exception {
         Customer expectedCustomer = testHelper.getCustomer(0);
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/customers/" + expectedCustomer.getId()).contentType(MediaType.APPLICATION_JSON);
 
@@ -87,7 +87,7 @@ public class CustomerControllerTests {
     }
 
     @Test
-    public void b_GetById_Bad() throws Exception {
+    public void getById_GetById_Bad() throws Exception {
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/customers/99").contentType(MediaType.APPLICATION_JSON);
 
         mvc.perform(mockHttpServletRequestBuilder)
@@ -99,7 +99,7 @@ public class CustomerControllerTests {
     //region GetReservationsById
 
     @Test
-    public void c_GetReservationsById() throws Exception {
+    public void reservations_GetReservationsById() throws Exception {
         Customer customer = testHelper.getCustomer(0);
 
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/customers/" + customer.getId() + "/reservations").contentType(MediaType.APPLICATION_JSON);
@@ -116,7 +116,7 @@ public class CustomerControllerTests {
     //region Post
 
     @Test
-    public void d_PostCustomer() throws Exception {
+    public void post_PostCustomer() throws Exception {
         Customer michiel = new Customer("Michiel Vanhaverbeke", "michiel.vanhaverbeke@accenture.com");
 
         String serialized = TestHelper.jsonSerialize(michiel);
@@ -128,12 +128,11 @@ public class CustomerControllerTests {
         mvc.perform(mockHttpServletRequestBuilder)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name", is("Michiel Vanhaverbeke")))
-                .andExpect(jsonPath("$.email", is("michiel.vanhaverbeke@accenture.com")))
-                .andExpect(jsonPath("$.id", greaterThan(0)));
+                .andExpect(jsonPath("$.email", is("michiel.vanhaverbeke@accenture.com")));
     }
 
     @Test
-    public void d_PostCustomer_Bad_NoName() throws Exception {
+    public void post_PostCustomer_Bad_NoName() throws Exception {
         Customer michiel = new Customer("", "michiel.vanhaverbeke@accenture.com");
 
         String serialized = TestHelper.jsonSerialize(michiel);
@@ -147,7 +146,7 @@ public class CustomerControllerTests {
     }
 
     @Test
-    public void d_PostCustomer_Bad_NoEmail() throws Exception {
+    public void post_PostCustomer_Bad_NoEmail() throws Exception {
         Customer michiel = new Customer("Michiel Vanhaverbeke", "");
 
         String serialized = TestHelper.jsonSerialize(michiel);
@@ -161,7 +160,7 @@ public class CustomerControllerTests {
     }
 
     @Test
-    public void d_PostCustomer_Bad_BadEmail() throws Exception {
+    public void post_PostCustomer_Bad_BadEmail() throws Exception {
         Customer michiel = new Customer("Michiel Vanhaverbeke", "thisisnotanemail");
 
         String serialized = TestHelper.jsonSerialize(michiel);
@@ -179,7 +178,7 @@ public class CustomerControllerTests {
     //region Put
 
     @Test
-    public void e_PutCustomer() throws Exception {
+    public void put_PutCustomer() throws Exception {
         Customer customerThatWillBeModified = testHelper.getCustomer(1);
         Customer customerToModify = new Customer("Griet Coysmans", "griet.coysmans@accenture.com");
         String serialized = TestHelper.jsonSerialize(customerToModify);
@@ -195,7 +194,7 @@ public class CustomerControllerTests {
     }
 
     @Test
-    public void e_PutCustomer_OnlyName() throws Exception {
+    public void put_PutCustomer_OnlyName() throws Exception {
         Customer customerThatWillBeModified = testHelper.getCustomer(1);
         Customer customerToModify = new Customer("Griet Coysmans", "");
         String serialized = TestHelper.jsonSerialize(customerToModify);
@@ -211,7 +210,7 @@ public class CustomerControllerTests {
     }
 
     @Test
-    public void e_PutCustomer_OnlyEmail() throws Exception {
+    public void put_PutCustomer_OnlyEmail() throws Exception {
         Customer customerThatWillBeModified = testHelper.getCustomer(2);
         Customer customerToModify = new Customer("", "griet.coysmans@accenture.com");
         String serialized = TestHelper.jsonSerialize(customerToModify);
@@ -227,7 +226,7 @@ public class CustomerControllerTests {
     }
 
     @Test
-    public void e_PutCustomer_Bad_InvalidId() throws Exception {
+    public void put_PutCustomer_Bad_InvalidId() throws Exception {
         Customer customerToModify = new Customer("Lode Kennes", "lode.kennes@accenture.com");
         String serialized = TestHelper.jsonSerialize(customerToModify);
 
@@ -243,20 +242,20 @@ public class CustomerControllerTests {
     //region Delete
 
     @Test
-    public void f_DeleteCustomer() throws Exception {
+    public void delete_DeleteCustomer() throws Exception {
         Customer customerThatWillBeDeleted = testHelper.getCustomer(3);
         mvc.perform(delete("/api/v1/customers/" + customerThatWillBeDeleted.getId()))
                 .andExpect(status().isOk());
     }
 
     @Test
-    public void f_DeleteCustomer_InvalidId() throws Exception {
+    public void delete_DeleteCustomer_InvalidId() throws Exception {
         mvc.perform(delete("/api/v1/customers/10000"))
                 .andExpect(status().is(404));
     }
 
     @Test
-    public void f_DeleteCustomer_NoId() throws Exception {
+    public void delete_DeleteCustomer_NoId() throws Exception {
         mvc.perform(delete("/api/v1/customers"))
                 .andExpect(status().isOk());
     }

@@ -73,7 +73,7 @@ public class ReservationControllerTests {
 
     //region Get
     @Test
-    public void a_Get() throws Exception {
+    public void get_Get() throws Exception {
         Reservation expectedReservation = testHelper.getReservation(0);
 
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/reservations").contentType(MediaType.APPLICATION_JSON);
@@ -90,7 +90,7 @@ public class ReservationControllerTests {
     //region GetById
 
     @Test
-    public void b_GetById() throws Exception {
+    public void getById_GetById() throws Exception {
         Reservation expectedReservation = testHelper.getReservation(0);
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/reservations/" + expectedReservation.getId()).contentType(MediaType.APPLICATION_JSON);
 
@@ -103,7 +103,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void b_GetById_Bad() throws Exception {
+    public void getById_GetById_Bad() throws Exception {
         MockHttpServletRequestBuilder mockHttpServletRequestBuilder = get("/api/v1/reservations/99").contentType(MediaType.APPLICATION_JSON);
 
         mvc.perform(mockHttpServletRequestBuilder)
@@ -114,7 +114,7 @@ public class ReservationControllerTests {
 
     //region GetByDates
     @Test
-    public void c_GetByDates() throws Exception {
+    public void getByDates_GetByDates() throws Exception {
         Reservation reservation = testHelper.getReservation(0);
         mvc.perform(get("/api/v1/reservations/" + dateService.formatDate(reservation.getStartDate()) + "/" + dateService.formatDate(reservation.getEndDate())))
                 .andExpect(status().isOk())
@@ -124,7 +124,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void c_GetByDates_Empty() throws Exception {
+    public void getByDates_GetByDates_Empty() throws Exception {
         Reservation reservation = testHelper.getReservation(0);
         mvc.perform(get("/api/v1/reservations/1970-03-01/1970-03-15"))
                 .andExpect(status().isOk())
@@ -134,19 +134,19 @@ public class ReservationControllerTests {
     }
 
     @Test(expected = Exception.class)
-    public void c_GetByDates_Bad_StartDate() throws Exception {
+    public void getByDates_GetByDates_Bad_StartDate() throws Exception {
         mvc.perform(get("/api/v1/reservations/1970-01-x/1970-01-01"));
     }
 
     @Test(expected = Exception.class)
-    public void c_GetByDates_Bad_EndDate() throws Exception {
+    public void getByDates_GetByDates_Bad_EndDate() throws Exception {
         mvc.perform(get("/api/v1/reservations/1970-01-01/1970-01-x"));
     }
     //endregion
 
     //region Post
     @Test
-    public void d_Post() throws Exception {
+    public void post_Post() throws Exception {
         Car carToUse = testHelper.getCar(1);
         Customer customerToUse = testHelper.getCustomer(1);
         Date startDate = new Date();
@@ -161,11 +161,12 @@ public class ReservationControllerTests {
         .content(serialized))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id", greaterThan(0)));
+                .andExpect(jsonPath("$.customer", is(customerToUse.getId())))
+                .andExpect(jsonPath("$.car", is(carToUse.getId())));
     }
 
     @Test
-    public void d_Post_Bad_CarUnavailable_Exact() throws Exception {
+    public void post_Post_Bad_CarUnavailable_Exact() throws Exception {
         Car carToUse = testHelper.getCar(0);
         Customer customerToUse = testHelper.getCustomer(1);
 
@@ -180,7 +181,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void d_Post_Bad_CarUnavailable_BeforeOverlap() throws Exception {
+    public void post_Post_Bad_CarUnavailable_BeforeOverlap() throws Exception {
         Car carToUse = testHelper.getCar(0);
         Customer customerToUse = testHelper.getCustomer(1);
 
@@ -195,7 +196,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void d_Post_Bad_CarUnavailable_AfterOverlap() throws Exception {
+    public void post_Post_Bad_CarUnavailable_AfterOverlap() throws Exception {
         Car carToUse = testHelper.getCar(0);
         Customer customerToUse = testHelper.getCustomer(1);
 
@@ -210,7 +211,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void d_Post_Bad_CarUnavailable_FullOverlap() throws Exception {
+    public void post_Post_Bad_CarUnavailable_FullOverlap() throws Exception {
         Car carToUse = testHelper.getCar(0);
         Customer customerToUse = testHelper.getCustomer(1);
 
@@ -225,7 +226,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void d_Post_OtherCar_Exact() throws Exception {
+    public void post_Post_OtherCar_Exact() throws Exception {
         Car carToUse = testHelper.getCar(1);
         Customer customerToUse = testHelper.getCustomer(1);
 
@@ -242,7 +243,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void d_Post_OtherCar_BeforeOverlap() throws Exception {
+    public void post_Post_OtherCar_BeforeOverlap() throws Exception {
         Car carToUse = testHelper.getCar(1);
         Customer customerToUse = testHelper.getCustomer(1);
 
@@ -259,7 +260,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void d_Post_OtherCar_AfterOverlap() throws Exception {
+    public void post_Post_OtherCar_AfterOverlap() throws Exception {
         Car carToUse = testHelper.getCar(1);
         Customer customerToUse = testHelper.getCustomer(1);
 
@@ -276,7 +277,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void d_Post_OtherCar_FullOverlap() throws Exception {
+    public void post_Post_OtherCar_FullOverlap() throws Exception {
         Car carToUse = testHelper.getCar(1);
         Customer customerToUse = testHelper.getCustomer(1);
 
@@ -293,8 +294,9 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void d_Post_Customer_BadId() throws Exception {
-        ExposedReservation newReservation = new ExposedReservation(new Date(2018, 12, 1), new Date(2018, 12, 15), 99, 1, false);
+    public void post_Post_Customer_BadId() throws Exception {
+        Car car = testHelper.getCar(1);
+        ExposedReservation newReservation = new ExposedReservation(new Date(2018, 12, 1), new Date(2018, 12, 15), 99999, car.getId(), false);
 
         String serialized = TestHelper.jsonSerialize(newReservation);
 
@@ -305,8 +307,9 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void d_Post_Car_BadId() throws Exception {
-        ExposedReservation newReservation = new ExposedReservation(new Date(2018, 12, 1), new Date(2018, 12, 15), 1, 99, false);
+    public void post_Post_Car_BadId() throws Exception {
+        Customer customer = testHelper.getCustomer(0);
+        ExposedReservation newReservation = new ExposedReservation(new Date(2018, 12, 1), new Date(2018, 12, 15), customer.getId(), 999, false);
 
         String serialized = TestHelper.jsonSerialize(newReservation);
 
@@ -320,7 +323,7 @@ public class ReservationControllerTests {
 
     //region Delete
     @Test
-    public void e_Delete() throws Exception {
+    public void delete_Delete() throws Exception {
         Reservation reservation = testHelper.getReservation(0);
 
         mvc.perform(delete("/api/v1/reservations/" + reservation.getId())
@@ -329,7 +332,7 @@ public class ReservationControllerTests {
     }
 
     @Test
-    public void e_Delete_BadId() throws Exception {
+    public void delete_Delete_BadId() throws Exception {
         mvc.perform(delete("/api/v1/reservations/9999999")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is(404));
