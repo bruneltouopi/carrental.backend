@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/reservations")
 public class ReservationController {
 
@@ -43,6 +44,18 @@ public class ReservationController {
     @RequestMapping(value = "/{id}")
     public Reservation getById(@PathVariable int id) throws NotFoundException {
         return reservationService.findById(id);
+    }
+
+    @RequestMapping(value = "/{id}/car")
+    public Car getCarById(@PathVariable int id) throws NotFoundException {
+        Reservation reservation = reservationService.findById(id);
+        return reservation.getCar();
+    }
+
+    @RequestMapping(value = "/{id}/customer")
+    public Customer getCustomerById(@PathVariable int id) throws NotFoundException {
+        Reservation reservation = reservationService.findById(id);
+        return reservation.getCustomer();
     }
 
     @RequestMapping(value = "/{startDateString}/{endDateString}")

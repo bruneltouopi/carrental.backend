@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/api/v1/cars")
 public class CarController {
 
