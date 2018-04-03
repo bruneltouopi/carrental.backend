@@ -83,6 +83,14 @@ public class ReservationController {
         return savedReservation;
     }
 
+    @PutMapping(value = "/{id}")
+    public Reservation put(@PathVariable int id, @RequestBody ExposedReservation exposedReservation)throws NotFoundException {
+        Reservation reservation = reservationService.findById(id);
+        reservation.setPaid(!reservation.isPaid());
+
+        return reservationService.save(reservation);
+    }
+
     @DeleteMapping(value = "/{id}")
     public void delete(@PathVariable int id) throws NotFoundException {
         reservationService.delete(id);
